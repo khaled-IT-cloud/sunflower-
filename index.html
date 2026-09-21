@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Sunflower Theory, for Lola</title>
+<meta name="description" content="A sunflower story, made for Lola. Give someone sunflowers and you should always give two.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=Young+Serif&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #5bc7d8;
+  --night: #114198;
+  --navy: #0b2a66;
+  --cream: #fff3cf;
+  --moon: #efe1a0;
+  --gold: #f2b92b;
+  --mat: #fff8e1;
+  --serif: "Young Serif", Georgia, "Times New Roman", serif;
+  --sans: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --w: 0;
+  --bg: var(--sky);
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+/* The story sets its own day-to-night palette, so it stays the same in either viewer theme;
+   only the pre-script fallback shifts. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #4fb6c7; }
+}
+:root[data-theme="dark"] { --bg: #4fb6c7; }
+
+html {
+  background: var(--bg);
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--navy);
+  font: 400 1.125rem/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, p { margin: 0; }
+
+/* Watercolor clouds that thin out as night arrives */
+.sky {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: calc(1 - var(--w));
+  background:
+    radial-gradient(62% 26% at 18% 16%, rgba(255,255,255,.30), transparent 72%),
+    radial-gradient(48% 20% at 88% 38%, rgba(255,255,255,.24), transparent 72%),
+    radial-gradient(70% 28% at 38% 82%, rgba(255,255,255,.28), transparent 72%);
+}
+main { position: relative; z-index: 1; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* Shared picture-book plate: a soft arch with a paper mat */
+.frame {
+  position: relative;
+  width: min(360px, 78vw);
+  aspect-ratio: 9 / 16;
+  border: 6px solid var(--mat);
+  background: var(--mat);
+  border-radius: 50% 50% 18px 18px / 22% 22% 18px 18px;
+  overflow: hidden;
+  box-shadow: 0 34px 70px -28px rgba(8, 30, 84, .55);
+}
+.frame img, .frame video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: .55rem;
+  padding: .6rem 1.1rem;
+  font: 600 .95rem/1 var(--sans);
+  color: inherit; background: transparent;
+  border: 2px solid currentColor; border-radius: 999px;
+  cursor: pointer;
+  transition: background-color .2s, color .2s;
+}
+.btn:hover { background: currentColor; }
+.btn:hover > * { color: var(--btn-flip, var(--cream)); }
+.btn:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+.btn svg { width: 1.1em; height: 1.1em; flex: none; }
+
+/* ---------- Hero ---------- */
+.hero {
+  min-height: 100svh;
+  display: grid; align-items: center;
+  padding: clamp(2rem, 6vw, 5rem) clamp(1.25rem, 6vw, 5rem);
+}
+.hero-inner {
+  width: 100%; max-width: 1120px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(2rem, 6vw, 6rem); align-items: center;
+}
+h1 {
+  font: 400 clamp(3.1rem, 7.6vw, 6.4rem)/.94 var(--serif);
+  letter-spacing: -.015em;
+  color: var(--navy);
+}
+.hero .sub {
+  margin-top: 1.6rem;
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.65rem);
+  line-height: 1.35;
+  max-width: 24ch;
+}
+.hero .by { margin-top: 1.25rem; max-width: 34ch; font-size: 1rem; }
+.hero .by strong { font-weight: 600; }
+.hero .cue { margin-top: 2.6rem; font-weight: 600; font-size: 1rem; }
+.film { justify-self: center; display: flex; flex-direction: column; align-items: center; }
+.controls { display: flex; gap: .6rem; margin-top: 1.1rem; flex-wrap: wrap; justify-content: center; color: var(--navy); --btn-flip: var(--cream); }
+.film-note { margin-top: .8rem; font-size: .95rem; max-width: 26ch; text-align: center; }
+.film-note[hidden] { display: none; }
+
+/* ---------- Day turns to night (scroll-scrubbed) ---------- */
+.dusk { height: 340svh; position: relative; }
+.stage {
+  position: sticky; top: env(safe-area-inset-top, 0px);
+  height: calc(100svh - env(safe-area-inset-top, 0px));
+  display: grid;
+  grid-template-columns: auto minmax(0, 31rem);
+  justify-content: center; align-items: center;
+  gap: clamp(2rem, 7vw, 7rem);
+  padding: 0 clamp(1.25rem, 6vw, 5rem);
+  --ink: var(--navy);
+}
+.plate { height: min(80svh, 720px); width: auto; }
+.plate .night {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--w) * 124% - 24%), transparent calc(var(--w) * 124%));
+          mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--w) * 124% - 24%), transparent calc(var(--w) * 124%));
+}
+.caps { display: grid; }
+.cap {
+  grid-area: 1 / 1; align-self: center;
+  font: 400 clamp(1.75rem, 1rem + 2.5vw, 3.2rem)/1.12 var(--serif);
+  letter-spacing: -.01em;
+  color: var(--ink);
+  text-wrap: balance;
+  opacity: 0; transform: translateY(12px);
+  transition: opacity .45s ease, transform .45s ease;
+}
+.cap.on { opacity: 1; transform: none; }
+
+/* ---------- Finale ---------- */
+.finale { color: var(--cream); padding: clamp(4rem, 12vh, 9rem) clamp(1.25rem, 6vw, 5rem) 0; }
+.finale-inner {
+  max-width: 1120px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(2rem, 6vw, 6rem); align-items: center;
+  min-height: 80svh;
+}
+.finale .lead { font-size: clamp(1.15rem, 1rem + .7vw, 1.5rem); line-height: 1.4; max-width: 28ch; opacity: .9; }
+.finale h2 {
+  margin-top: .9rem;
+  font: 400 clamp(2.6rem, 1.4rem + 4.6vw, 5.2rem)/1.02 var(--serif);
+  letter-spacing: -.015em;
+  max-width: 11ch;
+  text-wrap: balance;
+}
+.finale .coda { margin-top: 2rem; color: var(--moon); font-size: 1.2rem; }
+.finale .btn { margin-top: 2rem; --btn-flip: var(--night); }
+.finale .frame { justify-self: center; box-shadow: 0 0 90px -10px rgba(239, 225, 160, .28); }
+.credit {
+  max-width: 1120px; margin: clamp(4rem, 10vh, 7rem) auto 0;
+  padding: 1.75rem 0 2.5rem;
+  border-top: 1px solid rgba(255, 243, 207, .28);
+  font-size: .95rem; line-height: 1.5; opacity: .82; max-width: 1120px;
+}
+.credit p { max-width: 62ch; }
+
+
+/* ---------- The gift: two sunflowers, for Lola ---------- */
+.gift { color: var(--cream); padding: clamp(4rem, 10vh, 8rem) clamp(1.25rem, 6vw, 5rem) 0; }
+.gift-inner {
+  max-width: 1120px; margin: 0 auto;
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 6rem); align-items: center;
+}
+.gift .frame { box-shadow: 0 0 100px -8px rgba(239, 225, 160, .3); }
+.gift .frame svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.gift h2 {
+  font: 400 clamp(2.5rem, 1.3rem + 4.2vw, 4.8rem)/1.02 var(--serif);
+  letter-spacing: -.015em; max-width: 11ch; text-wrap: balance;
+}
+.letter {
+  margin-top: 1.75rem; max-width: 30rem;
+  background: var(--mat); color: var(--navy);
+  border-radius: 18px 18px 18px 4px; padding: 1.6rem 1.7rem 1.5rem;
+  display: grid; gap: .85rem;
+}
+.letter p { font-size: 1.1rem; line-height: 1.5; }
+.letter .l-big { font: 400 clamp(1.7rem, 1.1rem + 1.8vw, 2.4rem)/1.12 var(--serif); text-wrap: balance; margin-top: .3rem; }
+.letter .l-sign { font: 400 1.25rem/1.3 var(--serif); margin-top: .2rem; }
+.gift .actions { margin-top: 1.4rem; display: flex; flex-wrap: wrap; gap: .7rem; color: var(--cream); --btn-flip: var(--night); }
+.btn-gold { background: var(--gold); color: var(--navy); border-color: var(--gold); --btn-flip: var(--navy); }
+.btn-gold:hover { background: var(--cream); border-color: var(--cream); }
+
+/* Hearts sent with the button float up inside the arch */
+.hearts { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.gift .hearts svg { position: absolute; inset: auto; bottom: 40%; width: 26px; height: 26px; }
+
+/* The gift moment plays once when the flowers scroll into view */
+.gift .flower { transform: translateY(720px); }
+.gift .rays, .gift .heart { opacity: 0; }
+.gift .sway { transform-box: view-box; transform-origin: 0px 290px; }
+.gift .heart, .gift .dr { transform-box: fill-box; transform-origin: center; }
+.gift .dr { fill: #f6c548; stroke: #1a2244; stroke-width: 1.5; }
+.gift.given .flower { transform: none; animation: rise 1.3s cubic-bezier(.2, .75, .25, 1) both; }
+.gift.given .flower.b { animation-delay: .22s; }
+.gift.given .sway.a { transform: rotate(4.5deg); animation: lean-a 1s ease-in-out 1.4s both; }
+.gift.given .sway.b { transform: rotate(-4.5deg); animation: lean-b 1s ease-in-out 1.4s both; }
+.gift.given .rays { opacity: 1; animation: fade-in 1s ease 2.2s both; }
+.gift.given .heart { opacity: 1; animation: pop .7s cubic-bezier(.3, 1.6, .5, 1) 2.5s both; }
+.gift.given .dr { animation: drift var(--d, 8s) linear var(--delay, 3s) both; }
+.gift.armed .letter > * { opacity: 0; }
+.gift.given .letter > * { animation: fade-in .9s ease both; }
+.gift.given .letter > :nth-child(1) { animation-delay: .5s; }
+.gift.given .letter > :nth-child(2) { animation-delay: 1.4s; }
+.gift.given .letter > :nth-child(3) { animation-delay: 2.4s; }
+.gift.given .letter > :nth-child(4) { animation-delay: 3.3s; }
+.gift.given .letter > :nth-child(5) { animation-delay: 4.3s; }
+.gift.given .actions { animation: fade-in .9s ease 4.8s both; }
+.gift.armed .actions { opacity: 0; }
+@keyframes rise { from { transform: translateY(720px); } to { transform: none; } }
+@keyframes lean-a { from { transform: none; } to { transform: rotate(4.5deg); } }
+@keyframes lean-b { from { transform: none; } to { transform: rotate(-4.5deg); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+@keyframes drift {
+  0%   { opacity: 0; transform: translate(0, 0) rotate(0); }
+  8%   { opacity: .95; }
+  88%  { opacity: .95; }
+  100% { opacity: 0; transform: translate(var(--dx, 24px), 760px) rotate(var(--rot, 240deg)); }
+}
+
+.credit-wrap { padding: 0 clamp(1.25rem, 6vw, 5rem); color: var(--cream); }
+.credit-wrap .credit { margin-top: clamp(4rem, 10vh, 7rem); }
+
+/* ---------- Small screens ---------- */
+@media (max-width: 760px) {
+  .hero { align-items: start; padding-top: 2rem; padding-bottom: 3rem; }
+  .hero-inner, .finale-inner { grid-template-columns: 1fr; gap: 1.75rem; }
+  .hero .sub { margin-top: 1.1rem; }
+  .hero .by { margin-top: .8rem; }
+  .hero .cue { margin-top: 1.1rem; }
+  .hero .frame { width: min(58vw, 250px); }
+  .stage {
+    grid-template-columns: 1fr; grid-template-rows: auto auto;
+    justify-items: center; align-content: center; gap: 1.4rem;
+    text-align: center;
+  }
+  .plate { height: min(46svh, 420px); }
+  .caps { width: 100%; min-height: 9.5rem; }
+  .cap { font-size: clamp(1.5rem, 1rem + 3vw, 2rem); }
+  .finale-inner { min-height: 0; }
+  .finale h2 { max-width: 12ch; }
+  .gift-inner { grid-template-columns: 1fr; gap: 1.75rem; }
+  .gift .frame { width: min(62vw, 270px); justify-self: center; }
+  .gift .actions .btn { flex: 1 1 auto; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cap { transition: none; transform: none; }
+  .btn { transition: none; }
+  .gift.given .flower, .gift.given .sway, .gift.given .rays, .gift.given .heart, .gift.given .dr,
+  .gift.given .letter > *, .gift.given .actions { animation: none !important; }
+  .gift .dr { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"></div>
+
+<main>
+  <!-- Hero -->
+  <section class="hero" aria-labelledby="title">
+    <div class="hero-inner">
+      <div>
+        <h1 id="title">The Sunflower Theory</h1>
+        <p class="sub">Give someone sunflowers, and always give two.</p>
+        <p class="by"><strong>Made for Lola.</strong> A 23-second story, illustrated and animated by @celeilustracion.</p>
+        <p class="cue">Scroll to see why.</p>
+      </div>
+
+      <div class="film">
+        <div class="frame">
+          <video id="film" autoplay muted loop playsinline preload="auto"
+                 poster="assets/day.webp"
+                 aria-label="Animated story: two sunflowers grow on a hill, then turn to face each other at night. Captions in the video tell the sunflower theory.">
+            <source id="film-src" src="assets/sun.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="controls">
+          <button class="btn" id="snd" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h4l5 4v-13l-5 4z" fill="currentColor"/><path id="wave" d="M16.5 9a4 4 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11"/></svg>
+            <span>Turn sound on</span>
+          </button>
+          <button class="btn" id="pp" type="button">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path id="pp-icon" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+            <span>Pause</span>
+          </button>
+        </div>
+        <p class="film-note" id="film-note" hidden>The video couldn't load here, but the whole story is right below.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day turns to night -->
+  <section class="dusk" id="dusk" aria-labelledby="why-two">
+    <div class="stage" id="stage">
+      <div class="frame plate" id="plate">
+        <img class="day" src="assets/day.webp" alt="Two sunflowers stand on a green hill under a golden sun.">
+        <img class="night" src="assets/night.webp" alt="The same two sunflowers at night, leaning toward each other beneath a swirling moon.">
+      </div>
+      <div class="caps">
+        <h2 class="sr-only" id="why-two">Why two?</h2>
+        <p class="sr-only">When the sun shines bright, sunflowers face the light. But when night falls, they turn to face each other. Finding light in one another.</p>
+        <p class="cap on" aria-hidden="true">Why two?</p>
+        <p class="cap" aria-hidden="true">When the sun shines bright, sunflowers face the light.</p>
+        <p class="cap" aria-hidden="true">But when night falls, they turn to face each other.</p>
+        <p class="cap" aria-hidden="true">Finding light in one another.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Finale -->
+  <section class="finale" aria-labelledby="light">
+    <div class="finale-inner">
+      <div>
+        <p class="lead">So when you gift someone sunflowers, you're really saying</p>
+        <h2 id="light">even in the dark, you're my light.</h2>
+        <p class="coda">Beautiful, isn't it?</p>
+        <button class="btn" id="again" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4.5v4h4"/></svg>
+          <span>Watch it again</span>
+        </button>
+      </div>
+      <div class="frame">
+        <img src="assets/bouquet.webp" alt="A hand holds two sunflowers, with bright rays glowing around them against the night sky.">
+      </div>
+    </div>
+  </section>
+
+  <!-- The gift: two sunflowers, for Lola -->
+  <section class="gift" id="gift" aria-labelledby="gift-title">
+    <div class="gift-inner">
+      <div class="frame" id="gift-frame">
+        <svg viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Two sunflowers turning toward each other under a swirling moon, with a small heart between them">
+    <defs>
+      <path id="drift" d="M0,0 C6,-6 8,-18 0,-26 C-8,-18 -6,-6 0,0Z"/>
+      <path id="petal" d="M0,-24 C11,-34 15,-56 0,-72 C-15,-56 -11,-34 0,-24Z"/>
+      <g id="head" stroke-linejoin="round">
+        <g fill="#f2b92b" stroke="#1a2244" stroke-width="2">
+          <use href="#petal" transform="rotate(0.0)"/>
+          <use href="#petal" transform="rotate(25.71)"/>
+          <use href="#petal" transform="rotate(51.43)"/>
+          <use href="#petal" transform="rotate(77.14)"/>
+          <use href="#petal" transform="rotate(102.86)"/>
+          <use href="#petal" transform="rotate(128.57)"/>
+          <use href="#petal" transform="rotate(154.29)"/>
+          <use href="#petal" transform="rotate(180.0)"/>
+          <use href="#petal" transform="rotate(205.71)"/>
+          <use href="#petal" transform="rotate(231.43)"/>
+          <use href="#petal" transform="rotate(257.14)"/>
+          <use href="#petal" transform="rotate(282.86)"/>
+          <use href="#petal" transform="rotate(308.57)"/>
+          <use href="#petal" transform="rotate(334.29)"/>
+        </g>
+        <g fill="#f8d25f" stroke="#1a2244" stroke-width="2">
+          <use href="#petal" transform="rotate(12.86) scale(.8)"/>
+          <use href="#petal" transform="rotate(38.57) scale(.8)"/>
+          <use href="#petal" transform="rotate(64.29) scale(.8)"/>
+          <use href="#petal" transform="rotate(90.0) scale(.8)"/>
+          <use href="#petal" transform="rotate(115.71) scale(.8)"/>
+          <use href="#petal" transform="rotate(141.43) scale(.8)"/>
+          <use href="#petal" transform="rotate(167.14) scale(.8)"/>
+          <use href="#petal" transform="rotate(192.86) scale(.8)"/>
+          <use href="#petal" transform="rotate(218.57) scale(.8)"/>
+          <use href="#petal" transform="rotate(244.29) scale(.8)"/>
+          <use href="#petal" transform="rotate(270.0) scale(.8)"/>
+          <use href="#petal" transform="rotate(295.71) scale(.8)"/>
+          <use href="#petal" transform="rotate(321.43) scale(.8)"/>
+          <use href="#petal" transform="rotate(347.14) scale(.8)"/>
+        </g>
+        <circle r="29" fill="#6b4726" stroke="#1a2244" stroke-width="2.5"/>
+        <circle r="21" fill="#4f3218"/>
+        <path d="M0,0 C3,-3 7,-1 6,3 C5,9 -3,11 -8,6 C-13,0 -10,-9 -2,-12 C7,-15 15,-8 15,1" fill="none" stroke="#24140a" stroke-width="2.4" stroke-linecap="round"/>
+      </g>
+    </defs>
+    <rect width="360" height="640" fill="#114198"/>
+    <!-- moon -->
+    <g transform="translate(180 96)">
+      <circle r="34" fill="#efe1a0"/>
+      <circle cx="14" cy="-8" r="30" fill="#114198"/>
+      <g fill="none" stroke="#fff" stroke-linecap="round">
+        <ellipse rx="52" ry="44" transform="rotate(-20)" stroke-width="3.5" opacity=".85"/>
+        <ellipse rx="44" ry="50" transform="rotate(25)" stroke-width="3" opacity=".6"/>
+        <ellipse rx="56" ry="40" transform="rotate(60)" stroke-width="2.5" opacity=".5"/>
+      </g>
+    </g>
+    <!-- glow rays, revealed when the gift is given -->
+    <g class="rays" stroke="#f3ec9c" stroke-width="5" stroke-linecap="round">
+      <line x1="58.0" y1="330.0" x2="28.0" y2="330.0"/>
+      <line x1="62.2" y1="298.4" x2="44.8" y2="293.8"/>
+      <line x1="74.3" y1="269.0" x2="44.9" y2="252.0"/>
+      <line x1="93.7" y1="243.7" x2="82.4" y2="232.4"/>
+      <line x1="119.0" y1="224.3" x2="105.0" y2="200.1"/>
+      <line x1="148.4" y1="212.2" x2="143.2" y2="192.8"/>
+      <line x1="180.0" y1="208.0" x2="180.0" y2="176.0"/>
+      <line x1="211.6" y1="212.2" x2="216.0" y2="195.7"/>
+      <line x1="241.0" y1="224.3" x2="254.0" y2="201.8"/>
+      <line x1="266.3" y1="243.7" x2="281.8" y2="228.2"/>
+      <line x1="285.7" y1="269.0" x2="311.6" y2="254.0"/>
+      <line x1="297.8" y1="298.4" x2="315.2" y2="293.8"/>
+      <line x1="302.0" y1="330.0" x2="336.0" y2="330.0"/>
+      <line x1="297.8" y1="361.6" x2="313.3" y2="365.7"/>
+      <line x1="285.7" y1="391.0" x2="309.9" y2="405.0"/>
+      <line x1="266.3" y1="416.3" x2="280.4" y2="430.4"/>
+      <line x1="93.7" y1="416.3" x2="71.1" y2="438.9"/>
+      <line x1="74.3" y1="391.0" x2="59.6" y2="399.5"/>
+      <line x1="62.2" y1="361.6" x2="37.0" y2="368.3"/>
+    </g>
+    <g transform="translate(112 330)">
+      <g class="flower a">
+        <g class="sway a">
+          <path d="M0,10 C-5,90 6,200 0,290" fill="none" stroke="#1a2244" stroke-width="13" stroke-linecap="round"/>
+          <path d="M0,10 C-5,90 6,200 0,290" fill="none" stroke="#a9a53b" stroke-width="8" stroke-linecap="round"/>
+          <g>
+            <path d="M0,150 C-30,110 -80,112 -104,142 C-78,170 -30,176 0,150Z" fill="#b3ad3f" stroke="#1a2244" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M-4,150 C-40,142 -70,142 -96,142" fill="none" stroke="#1a2244" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M0,220 C22,196 55,196 72,214 C52,234 22,238 0,220Z" fill="#c2bc4a" stroke="#1a2244" stroke-width="2.5" stroke-linejoin="round"/>
+          </g>
+          <use href="#head" transform="rotate(-8) scale(.85)"/>
+        </g>
+      </g>
+    </g>
+    <g transform="translate(248 330)">
+      <g class="flower b">
+        <g class="sway b">
+          <path d="M0,10 C-5,90 6,200 0,290" fill="none" stroke="#1a2244" stroke-width="13" stroke-linecap="round"/>
+          <path d="M0,10 C-5,90 6,200 0,290" fill="none" stroke="#a9a53b" stroke-width="8" stroke-linecap="round"/>
+          <g transform="scale(-1 1)">
+            <path d="M0,150 C-30,110 -80,112 -104,142 C-78,170 -30,176 0,150Z" fill="#b3ad3f" stroke="#1a2244" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M-4,150 C-40,142 -70,142 -96,142" fill="none" stroke="#1a2244" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M0,220 C22,196 55,196 72,214 C52,234 22,238 0,220Z" fill="#c2bc4a" stroke="#1a2244" stroke-width="2.5" stroke-linejoin="round"/>
+          </g>
+          <use href="#head" transform="rotate(10) scale(.85)"/>
+        </g>
+      </g>
+    </g>
+    <g class="drift" aria-hidden="true">
+      <g transform="translate(40 -40)"><use class="dr" href="#drift" style="--delay:2.5s;--d:8.5s;--dx:26px;--rot:260deg"/></g>
+      <g transform="translate(95 -40)"><use class="dr" href="#drift" style="--delay:3.4s;--d:9.5s;--dx:-20px;--rot:-220deg"/></g>
+      <g transform="translate(150 -40)"><use class="dr" href="#drift" style="--delay:2.9s;--d:7.5s;--dx:34px;--rot:300deg"/></g>
+      <g transform="translate(215 -40)"><use class="dr" href="#drift" style="--delay:4.0s;--d:9.0s;--dx:-30px;--rot:-280deg"/></g>
+      <g transform="translate(270 -40)"><use class="dr" href="#drift" style="--delay:3.1s;--d:8.0s;--dx:22px;--rot:240deg"/></g>
+      <g transform="translate(320 -40)"><use class="dr" href="#drift" style="--delay:4.4s;--d:9.5s;--dx:-26px;--rot:-200deg"/></g>
+      <g transform="translate(70 -40)"><use class="dr" href="#drift" style="--delay:5.4s;--d:8.5s;--dx:30px;--rot:320deg"/></g>
+      <g transform="translate(245 -40)"><use class="dr" href="#drift" style="--delay:5.8s;--d:9.0s;--dx:-24px;--rot:-260deg"/></g>
+    </g>
+    <g class="heart" aria-hidden="true">
+      <path d="M181,266 C160,248 166,226 181,238 C196,226 202,248 181,266Z" fill="#ff8fa8" stroke="#1a2244" stroke-width="2.2" stroke-linejoin="round"/>
+    </g>
+  </svg>
+        <div class="hearts" id="hearts" aria-hidden="true"></div>
+      </div>
+
+      <div>
+        <h2 id="gift-title">Two sunflowers, for Lola.</h2>
+        <article class="letter">
+          <p>There are a hundred ways to say it. I picked sunflowers.</p>
+          <p>When the sun is out, I want to be right next to you. When it gets dark, I want to be the one you turn to.</p>
+          <p>That's why there are two.</p>
+          <p class="l-big">Even in the dark, you're my light.</p>
+          <p class="l-sign">Always yours</p>
+        </article>
+        <div class="actions">
+          <button class="btn btn-gold" id="heart-btn" type="button"><span>Send me a heart</span></button>
+          <button class="btn" id="regift" type="button"><span>Watch them turn again</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="credit-wrap">
+    <div class="credit">
+      <p>Artwork and animation by @celeilustracion. This page retells their short video, and all rights to the artwork remain with the artist. The sunflowers in the gift are drawn to match.</p>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- Colors: sky -> night, navy -> cream ---- */
+  var SKY = [91, 199, 216], NIGHT = [17, 65, 152], NAVY = [11, 42, 102], CREAM = [255, 243, 207];
+  function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+  function smooth(x) { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); }
+  function mix(a, b, t) {
+    return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')';
+  }
+
+  var dusk = document.getElementById('dusk');
+  var stage = document.getElementById('stage');
+  var plate = document.getElementById('plate');
+  var caps = Array.prototype.slice.call(stage.querySelectorAll('.cap'));
+  /* caption windows along the scrub; the gap in the middle is the moment night falls */
+  var windows = [[0, 0.12], [0.12, 0.30], [0.46, 0.78], [0.78, 1.01]];
+  var ticking = false;
+
+  function update() {
+    ticking = false;
+    var r = dusk.getBoundingClientRect();
+    var total = r.height - window.innerHeight;
+    var p = total > 0 ? -r.top / total : 0;           /* <0 above the section, >1 below it */
+    var w = smooth((p - 0.30) / 0.16);
+    root.style.setProperty('--w', w.toFixed(3));
+    root.style.setProperty('--bg', mix(SKY, NIGHT, w));
+    stage.style.setProperty('--ink', mix(NAVY, CREAM, w));
+    plate.style.setProperty('--w', w.toFixed(3));
+    var pc = clamp(p, 0, 1);
+    caps.forEach(function (el, i) {
+      el.classList.toggle('on', pc >= windows[i][0] && pc < windows[i][1]);
+    });
+  }
+  function queue() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+  window.addEventListener('scroll', queue, { passive: true });
+  window.addEventListener('resize', queue);
+  update();
+
+  /* ---- Film controls ---- */
+  var film = document.getElementById('film');
+  var snd = document.getElementById('snd');
+  var pp = document.getElementById('pp');
+  var wave = document.getElementById('wave');
+  var ppIcon = document.getElementById('pp-icon');
+  var filmNote = document.getElementById('film-note');
+  var userPaused = false;
+
+  function ui() {
+    snd.setAttribute('aria-pressed', String(!film.muted));
+    snd.querySelector('span').textContent = film.muted ? 'Turn sound on' : 'Mute';
+    wave.style.display = film.muted ? 'none' : '';
+    pp.querySelector('span').textContent = film.paused ? 'Play' : 'Pause';
+    ppIcon.setAttribute('d', film.paused ? 'M8 5.5v13l11-6.5z' : 'M7 5h3.5v14H7zM13.5 5H17v14h-3.5z');
+  }
+  function play() { var p = film.play(); if (p && p.catch) p.catch(function () { ui(); }); }
+
+  snd.addEventListener('click', function () {
+    if (film.muted) { film.muted = false; film.currentTime = 0; userPaused = false; play(); }
+    else { film.muted = true; }
+    ui();
+  });
+  pp.addEventListener('click', function () {
+    if (film.paused) { userPaused = false; play(); } else { userPaused = true; film.pause(); }
+  });
+  film.addEventListener('play', ui);
+  film.addEventListener('pause', ui);
+  film.addEventListener('volumechange', ui);
+  document.getElementById('film-src').addEventListener('error', function () { filmNote.hidden = false; });
+
+  if (reduce) { film.removeAttribute('autoplay'); film.pause(); userPaused = true; }
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) film.pause();
+        else if (!userPaused) play();
+      });
+    }, { threshold: 0.2 }).observe(film);
+  }
+  ui();
+
+  /* ---- The gift: plays once when the flowers scroll into view ---- */
+  var giftSec = document.getElementById('gift');
+  var giftFrame = document.getElementById('gift-frame');
+  var hearts = document.getElementById('hearts');
+
+  function playGift() {
+    giftSec.classList.remove('given');
+    void giftSec.offsetWidth;                 /* restart the animation */
+    giftSec.classList.add('given');
+  }
+  if (reduce || !('IntersectionObserver' in window)) {
+    giftSec.classList.add('given');           /* everything shown, no motion */
+  } else {
+    giftSec.classList.add('armed');
+    var giftIO = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { giftIO.disconnect(); playGift(); }
+    }, { threshold: 0.45 });
+    giftIO.observe(giftFrame);
+  }
+  document.getElementById('regift').addEventListener('click', function () {
+    giftSec.classList.add('armed');
+    playGift();
+    giftFrame.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+  });
+
+  var HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C3 14.5 4.5 6.5 9.2 6.5c1.2 0 2.2.6 2.8 1.6.6-1 1.6-1.6 2.8-1.6C19.5 6.5 21 14.5 12 21z" fill="#ff8fa8" stroke="#1a2244" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  document.getElementById('heart-btn').addEventListener('click', function () {
+    var n = 3;
+    for (var i = 0; i < n; i++) {
+      (function (i) {
+        var el = document.createElement('span');
+        el.innerHTML = HEART;
+        var s = el.firstChild;
+        s.style.left = (30 + Math.random() * 40) + '%';
+        hearts.appendChild(s);
+        var rise = reduce ? 0 : 200 + Math.random() * 120;
+        var drift = reduce ? 0 : (Math.random() - .5) * 60;
+        var a = s.animate([
+          { opacity: 0, transform: 'translate(0,0) scale(.6)' },
+          { opacity: 1, transform: 'translate(' + drift / 2 + 'px,' + (-rise / 3) + 'px) scale(1)', offset: .25 },
+          { opacity: 0, transform: 'translate(' + drift + 'px,' + (-rise) + 'px) scale(1.1)' }
+        ], { duration: reduce ? 900 : 2200 + Math.random() * 600, delay: i * 220, easing: 'ease-out', fill: 'both' });
+        a.onfinish = function () { s.remove(); };
+      })(i);
+    }
+  });
+
+  document.getElementById('again').addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    film.muted = false; film.currentTime = 0; userPaused = false; play(); ui();
+  });
+})();
+</script>
+</body>
+</html>
